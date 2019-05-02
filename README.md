@@ -19,13 +19,26 @@ am(async function main() {
 })
 ```
 
+Or even:
+
+```javascript
+const am = require('am')
+
+async function main() {
+    // my async-await logic
+}
+
+am(main)
+```
+
 * No dependency
 * Absolutely the minimum code required
+* Catches errors and sets the process exit code to a non-zero value
 * Plan javascript
 * Runs in Node 6+
 * No `async` or `await` is used in the module code so as long as your `main()` return promises, we're cool
 
-Bonus: this function also passes the main arguments from the `process.env` to your code so if you run it like:
+Bonus: `am()` also passes the main arguments from the `process.env` to your code so if you run it like:
 
 ```bash
 $ node index.js param1 param2
