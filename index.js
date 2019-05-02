@@ -9,7 +9,7 @@ function am(asyncMain) {
     try {
         const mainResult = asyncMain(...params)
         if (typeof mainResult.catch === 'function') {
-            mainResult.catch(e => errorHandler)
+            mainResult.catch(errorHandler)
         }
     } catch (e) {
         errorHandler(e)
