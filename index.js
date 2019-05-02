@@ -1,16 +1,18 @@
 const [,, ...params] = process.argv
+
+function errorHandler(error) {
+    process.exitCode = process.exitCode || 1
+    console.error(e)
+}
+
 function am(asyncMain) {
     try {
         const mainResult = asyncMain(...params)
         if (typeof mainResult.catch === 'function') {
-            mainResult.catch(e => {
-                process.exitCode = 1
-                console.error(e)
-            })
+            mainResult.catch(e => errorHandler)
         }
     } catch (e) {
-        process.exitCode = 1
-        console.error(e)
+        errorHandler(e)
     }
 }
 
