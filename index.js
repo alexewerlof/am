@@ -5,14 +5,19 @@ function errorHandler(error) {
     console.error(error)
 }
 
+process.on('unhandledRejection', (error, failedPromise) => {
+    console.warn('Unhandled Rejection at: Promise', failedPromise)
+    errorHandler(error)
+})
+
 function am(asyncMain) {
     try {
         const mainResult = asyncMain(...params)
         if (typeof mainResult.catch === 'function') {
             mainResult.catch(errorHandler)
         }
-    } catch (e) {
-        errorHandler(e)
+    } catch (error) {
+        errorHandler(error)
     }
 }
 
