@@ -27,7 +27,7 @@ function am(asyncMain) {
     try {
         listenToUnhandledRejection(process)
         const mainResult = asyncMain(...getScriptArgs(process))
-        if (typeof mainResult.catch === 'function') {
+        if (mainResult !== undefined && typeof mainResult.catch === 'function') {
             mainResult.catch(errorHandler)
         }
     } catch (error) {

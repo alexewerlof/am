@@ -9,6 +9,12 @@
     "node",
     "util"
   ],
+  "scripts": {
+    "test": "jest"
+  },
   "repository": "github:userpixel/am",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^24.8.0"
+  }
 }
