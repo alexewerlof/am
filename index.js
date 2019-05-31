@@ -1,5 +1,7 @@
 function errorHandler(error) {
-    process.exitCode = process.exitCode || 1
+    if (typeof process === 'object') {
+        process.exitCode = process.exitCode || 1
+    }
     console.error(error)
 }
 
@@ -15,8 +17,8 @@ function listenToUnhandledRejection(process) {
 
 function getScriptArgs(process) {
     if (typeof process === 'object' && Array.isArray(process.argv)) {
-        const [,, ...params] = process.argv
-        return params 
+        const [, , ...params] = process.argv
+        return params
     }
     return []
 }
@@ -34,3 +36,4 @@ function am(asyncMain) {
 }
 
 module.exports = am
+module.exports.am = am
