@@ -1,11 +1,11 @@
-function errorHandler(error) {
+function defaultErrorHandler(error) {
     if (typeof process === 'object') {
         process.exitCode = process.exitCode || 1
     }
     console.error(error)
 }
 
-function listenToUnhandledRejection(process) {
+function listenToUnhandledRejection(process, errorHandler) {
     if (typeof process === 'object' && !listenToUnhandledRejection.enabled) {
         listenToUnhandledRejection.enabled = true
         process.on('unhandledRejection', (error, failedPromise) => {
@@ -23,9 +23,9 @@ function getScriptArgs(process) {
     return []
 }
 
-function am(asyncMain) {
+function am(asyncMain, errorHandler = defaultErrorHandler) {
     try {
-        listenToUnhandledRejection(process)
+        listenToUnhandledRejection(process, errorHandler)
         const mainResult = asyncMain(...getScriptArgs(process))
         if (mainResult !== undefined && typeof mainResult.catch === 'function') {
             mainResult.catch(errorHandler)

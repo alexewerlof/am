@@ -7,6 +7,7 @@ A simple and light way to run a main function asynchronously
 * 🏳 No `async` or `await` is used in the module code so as long as your `main()` return promises, we're cool
 * 💌 Passes arguments to the main function
 * Works in the browser as well as Node
+* Listens to `unhandledRejection` error and prints the stack trace and the name of the faulty function
 
 ### Install
 
@@ -66,6 +67,18 @@ am(async function main(foo, bar) {
     console.log(bar) // "orange"
 })
 ```
+
+# API
+
+`am(main, errorHandler?): void`
+
+* `main` is an `async` or *sync* (normal) function. If there's an error the `errorHandler` will be called.
+  If it's run in Node, the `main` function will get the parameters as arguments.
+* `errorHandler` an optional function that'll be called if an error happens.
+  It'll get the error as its argument.
+  If you don't provide an `errorHandler`, the default error handler will be used which simply sets the `process.exitCode` to a non-zero value and prints the error stack trace using `console.error`.
+
+The `am()` function returns nothing.
 
 ---
 
