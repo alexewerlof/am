@@ -1,12 +1,15 @@
-A simple and light way to run a main function asynchronously
+A simple, light and unified way to run a top level async function asynchronously, addressing some quirks.
 
-* 0️⃣ No dependency 
-* 🐭 Absolutely the minimum code re🐭quired
-* ⚠ Catches errors and sets the process exit code to a non-zero value
-* ⚡Runs in Node 6+
-* 🏳 No `async` or `await` is used in the module code so as long as your `main()` return promises, we're cool
+> **Do I really need this?** No, if you are asking. Yes, if a simple IIFE doesn't do the job and you find yourself dealing with unexpected bugs and copy/pasted workarounds. 
+
+* 0️⃣ No dependency
+* Works in the browser and Node
+* Works with `async` functions, native or custom promises
+* 🐭 [Minimal and readable code](./index.js)
+* ⚠ When run in node, sets the process exit code to a non-zero value
+* 🏳 Can run both `async` or synchronous functions
 * 💌 Passes arguments to the main function
-* Works in the browser as well as Node
+* Supports custom error handlers
 * Listens to `unhandledRejection` error and prints the stack trace and the name of the faulty function
 
 ### Install
@@ -20,7 +23,7 @@ _(no pun intended!)_ 😎
 We ♥ `async` functions but what if the main logic of your application runs asynchronously?
 Top level `await` is not supported [because of complications](https://gist.github.com/Rich-Harris/0b6f317657f5167663b493c722647221).
 
-But you can do something like:
+Most of the times a naïve Immediately Invoked Function Expression does the job:
 
 ```javascript
 (async function main() {
@@ -28,9 +31,16 @@ But you can do something like:
 })()
 ```
 
-That does not look elegant but it works. Kinda! If there's an error, `main()` throws an error that is not being handled.
-Besides you probably want your script to return a non-zero error code.
-`am` handles these edge cases. It stands for **async main** and works like this:
+That does not look elegant but it works. Kinda! If `main()` throws, you're dealing with an *Unhandled Promise Rejection*.
+You get this:
+
+```
+UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 1)
+[DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+```
+
+Despite that, the process exit code remains 0 which means if you're chaining your script in a bash script (using `&&` for example), the rest of the chain will continue.
+`am` grew to handle these kinds of edge cases in a standard way. It stands for **async main** and works like this:
 
 ```javascript
 const am = require('am')

@@ -18,6 +18,7 @@ describe('Runs an async main', () => {
             throw 'Bad bad bad error!'
         }, error => {
             expect(error).toEqual('Bad bad bad error!')
+            expect(process.exitCode).not.toBe(0)
             done()
         })
     })
@@ -27,6 +28,7 @@ describe('Runs an async main', () => {
             throw 'Bad bad bad error!'
         }, error => {
             expect(error).toEqual('Bad bad bad error!')
+            expect(process.exitCode).not.toBe(0)
         })
     })
 })
