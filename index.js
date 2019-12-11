@@ -31,7 +31,7 @@ function defaultErrorHandler(error) {
 const addedErrorHandlers = new WeakSet()
 
 function listenToUnhandledRejection(errorHandler) {
-    if (!addedErrorHandlers.has(errorHandler)) {
+    if (isFn(errorHandler) && !addedErrorHandlers.has(errorHandler)) {
         addedErrorHandlers.add(errorHandler)
         getGlobal().on('unhandledRejection', (error, failedPromise) => {
             if (isObj(console) && isFn(console.warn)) {
@@ -50,6 +50,7 @@ function getScriptArgs(process) {
     return []
 }
 
+// TODO: document the options
 function am(asyncMain, options) {
     const errorHandler = isObj(options) && isFn(options.errorHandler) ?
         options.errorHandler : defaultErrorHandler
@@ -71,4 +72,3 @@ function am(asyncMain, options) {
 
 module.exports = am
 module.exports.am = am
-module.exports.ifMain = ifMain
