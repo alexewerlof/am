@@ -6,6 +6,10 @@ function isFn(x) {
     return typeof x === 'function'
 }
 
+function isObjWithFn(obj, fnName) {
+    return isObj(obj) && isFn(obj[fnName])
+}
+
 function getGlobal() {
     if (isObj(process)) {
         return process
@@ -23,7 +27,7 @@ function defaultErrorHandler(error) {
     if (isObj(process)) {
         process.exitCode = process.exitCode || 1
     }
-    if (isObj(console)) {
+    if (isObjWithFn(console, 'error')) {
         console.error(error)
     }
 }
@@ -34,7 +38,7 @@ function listenToUnhandledRejection(errorHandler) {
     if (isFn(errorHandler) && !addedErrorHandlers.has(errorHandler)) {
         addedErrorHandlers.add(errorHandler)
         getGlobal().on('unhandledRejection', (error, failedPromise) => {
-            if (isObj(console) && isFn(console.warn)) {
+            if (isObjWithFn(console, 'warn')) {
                 console.warn('Unhandled Rejection at: Promise', failedPromise)
             }
             errorHandler(error)
@@ -51,17 +55,28 @@ function getScriptArgs(process) {
 }
 
 // TODO: document the options
-function am(asyncMain, options) {
-    const errorHandler = isObj(options) && isFn(options.errorHandler) ?
+function am(asyncMainFn, options) {
+    if (!isFn(asyncMainFn)) {
+        throw new TypeError(`The argument is not a function: ${asyncMainFn}`)
+    }
+    if (options === undefined) {
+        options = { errorHandler: defaultErrorHandler }
+    } else if (isFn(options)) {
+        options = { errorHandler: options }
+    } else if (!isObj(options)) {
+        throw new TypeError(`options can either be the errorHandler function or an object but got ${options}`)
+    }
+
+    const errorHandler = isObjWithFn(options, 'errorHandler') ?
         options.errorHandler : defaultErrorHandler
-    const unhandledRejectionHandler = isObj(options) && isFn(options.unhandledRejectionHandler) ?
-        options.unhandledRejectionHandler : errorHandler
+    const urHandler = isObjWithFn(options, 'urHandler') ?
+        options.urHandler : errorHandler
 
     try {
-        listenToUnhandledRejection(unhandledRejectionHandler)
-        const mainResult = asyncMain(...getScriptArgs(process))
+        listenToUnhandledRejection(urHandler)
+        const mainResult = asyncMainFn(...getScriptArgs(process))
         // If asyncMain is indeed an async function, it'll always return a promise and promises have a .catch() method
-        if (mainResult !== undefined && isFn(mainResult.catch)) {
+        if (isObjWithFn(mainResult, 'catch')) {
             mainResult.catch(errorHandler)
         }
     } catch (error) {
