@@ -1,6 +1,6 @@
 {
   "name": "am",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simple and light way to run a main function asynchronously",
   "main": "index.js",
   "keywords": [
