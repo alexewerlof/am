@@ -1,10 +1,11 @@
-A simple, light and unified way to run a top level async function asynchronously, addressing some quirks.
+A simple, light and unified way to run a top level async function, addressing some quirks.
+Its main use case is for CLI utilities.
 
 > **Do I really need this?** No, if you are asking. Yes, if a simple IIFE doesn't do the job and you find yourself dealing with unexpected bugs and copy/pasted workarounds. 
 
-* 0️⃣ No dependency
-* Works in the browser and Node
 * Works with `async` functions, native or custom promises
+* Sets the process exit code to non-zero in case of an error
+* Handles unhandled promises
 * 🐭 [Minimal and readable code](./index.js)
 * ⚠ When run in node, sets the process exit code to a non-zero value
 * 🏳 Can run both `async` or synchronous functions
@@ -39,7 +40,7 @@ UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error origin
 [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
 ```
 
-Despite that, the process exit code remains 0 which means if you're chaining your script in a bash script (using `&&` for example), the rest of the chain will continue.
+Despite that, the **process exit code** remains 0 which means if you're chaining your script in a bash script (using `&&` for example), the rest of the chain will continue.
 `am` grew to handle these kinds of edge cases in a standard way. It stands for **async main** and works like this:
 
 ```javascript
@@ -80,7 +81,7 @@ am(async function main(foo, bar) {
 
 # API
 
-`am(main, errorHandler?): void`
+`am(main, options?): void`
 
 * `main` is an `async` or *sync* (normal) function. If there's an error the `errorHandler` will be called.
   If it's run in Node, the `main` function will get the parameters as arguments.

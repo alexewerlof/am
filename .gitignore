@@ -1,2 +1,6 @@
 node_modules/
 .vscode/
+# Produced by TypeScript compiler and used for testing or deploying to NPM
+index.d.ts
+index.js
+index.js.map
