@@ -1,5 +1,5 @@
-A simple, light and unified way to run a top level async function, addressing some quirks.
-Its main use case is for CLI utilities.
+A simple wrapper for running a top level async functions, addressing some quirks.
+Its main use case is for CLI utilities where the main logic is in an `async` function.
 
 > **Do I really need this?** No, if you are asking. Yes, if a simple IIFE doesn't do the job and you find yourself dealing with unexpected bugs and copy/pasted workarounds. 
 

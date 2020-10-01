@@ -1,84 +1,76 @@
 import { isObj, isFn } from 'jty'
 
-function isObjWithFn(obj, fnName) {
-    return isObj(obj) && isFn(obj[fnName])
-}
-
-function getGlobal() {
-    let global
-    if (isObj(process)) {
-        global = process
-    }
-    if (isObj(Worker)) {
-        global = Worker
-    }
-    if (isObj(global) && isFn(global.on)) {
-        return global
-    }
-    throw new Error('Could not get global')
-}
-
-function defaultErrorHandler(error) {
-    if (isObj(process)) {
-        process.exitCode = process.exitCode || 1
-    }
-    if (isObjWithFn(console, 'error')) {
-        console.error(error)
-    }
-}
-
-const addedErrorHandlers = new WeakSet()
-
-function listenToUnhandledRejection(errorHandler) {
-    if (isFn(errorHandler) && !addedErrorHandlers.has(errorHandler)) {
-        addedErrorHandlers.add(errorHandler)
-        getGlobal().on('unhandledRejection', (error, failedPromise) => {
-            if (isObjWithFn(console, 'warn')) {
-                console.warn('Unhandled Rejection at: Promise', failedPromise)
-            }
-            errorHandler(error)
-        })
-    }
-}
-
-function getScriptArgs(process) {
-    if (isObj(process) && Array.isArray(process.argv)) {
-        const [, , ...params] = process.argv
-        return params
-    }
-    return []
-}
-
-export type MainFunction = (...cliArgs: string[]) => Promise<any>
-export interface AMOptions {
-
-}
-
-// TODO: document the options
-export function am(mainFn: MainFunction, options: AMOptions = { errorHandler: defaultErrorHandler }) {
-    if (!isFn(mainFn)) {
-        throw new TypeError(`Expected a function for mainFn. Got: ${mainFn}`)
-    }
-    if (!isObj(options)) {
-        throw new TypeError(`Expected an object for options. Got: ${options}`)
-    }
-
-    const errorHandler = isFn(options, 'errorHandler') ?
-        options.errorHandler : defaultErrorHandler
-    const urHandler = isFn(options, 'urHandler') ?
-        options.urHandler : errorHandler
-
-    try {
-        listenToUnhandledRejection(urHandler)
-        const mainResult = mainFn(...getScriptArgs(process))
-        // If asyncMain is indeed an async function, it'll always return a promise and promises have a .catch() method
-        if (isFn(mainResult, 'catch')) {
-            mainResult.catch(errorHandler)
+function createURListener(unhandledRejection?: ErrorHandler): UnresolvedPromiseErrorHandler {
+    return function unhandledRejectionHandler(error: Error, promise: Promise<any>) {
+        if (isObj(process)) {
+            process.exitCode = process.exitCode || 1
         }
-    } catch (error) {
-        // If asyncMain is indeed a sync function, its possible extensions will be handled here
-        errorHandler(error)
+        if (isFn(unhandledRejectionHandler)) {
+            try {
+                unhandledRejectionHandler(error, promise)
+            } catch (errFromUserProvidedErrorHandler) {
+                console.error(errFromUserProvidedErrorHandler)
+                console.error(`Error when running the user-provided custom error handler for unhandled promise rejection ${error}\nThe failed promise: ${promise}`)
+            }
+        } else {
+            console.error(error)
+        }
     }
 }
+
+export type MainFunction = (...args: string[]) => Promise<any> | any
+export type ErrorHandler = (error: Error) => void
+export type UnresolvedPromiseErrorHandler = (error: Error, promise: PromiseLike<any>) => void
+
+/**
+ * The options
+ */
+export interface AMOptions {
+    errorHandler?: ErrorHandler;
+    urHandler?: UnresolvedPromiseErrorHandler;
+    process?: NodeJS.Process;
+}
+
+function getArgs(process: NodeJS.Process): string[] {
+    return isObj(process) && Array.isArray(process.argv) ? process.argv.slice(2) : []
+}
+
+async function asyncAm(mainFn: MainFunction, options: AMOptions = { process }) {
+    try {
+        if (!isFn(mainFn)) {
+            throw new TypeError(`Expected a function for mainFn. Got: ${mainFn}`)
+        }
+
+        if (!isObj(options)) {
+            throw new TypeError(`Expected an object for options. Got: ${options}`)
+        }
+
+        const urHandler = createURListener(options.errorHandler)
+
+        process.on('unhandledRejection', urHandler)
+        await mainFn(...getArgs(process))
+    } catch (error) {
+        if (isObj(process)) {
+            process.exitCode = process.exitCode || 1
+        }
+        const { errorHandler } = options
+        if (isFn(errorHandler)) {
+            try {
+                errorHandler(error)
+            } catch (errFromUserProvidedErrorHandler) {
+                console.error(errFromUserProvidedErrorHandler)
+                console.error(error)
+            }
+        } else {
+            console.error(error)
+        }
+    }
+}
+
+export function am(mainFn: MainFunction, options?: AMOptions): void {
+    asyncAm(mainFn, options).catch(errorHandler).finally(() => process.off('unhandledRejection', urHandler))
+}
+
+am.am = am;
 
 export default am
