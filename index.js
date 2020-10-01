@@ -25,7 +25,15 @@ function am(asyncMain, errorHandler = defaultErrorHandler) {
         unhandledRejectionRegistered = true
     }
 
-    runMain(asyncMain).catch(errorHandler)
+    runMain(asyncMain).catch(async error => {
+        try {
+            await errorHandler(error)
+            process.exitCode = process.exitCode || 1
+        } catch (errorHandlerFailure) {
+            console.warn(`The custom error handler failed`, errorHandlerFailure)
+            defaultErrorHandler(error)
+        }
+    })
 }
 
 am.am = am
