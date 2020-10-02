@@ -102,7 +102,7 @@ am(async function main(...cliArgs) {
 * When you first call `am`, it will listen to `unhandledRejection` event and prints the error message referring to the failed promise and sets the `process.exitCode` to `2`. The default or provided `errorHandler` will not be called (that way you can call `am()` as many times as needed)
 * `errorHandler` an optional `async` or *sync* (traditional) function that'll be called if the `main()` function throws. It takes the error as its argument. Even if you provide your custom error handler, we still set the `process.exitCode` to `1` if you forget to set it to a non-zero value. Also, if your custom `errorHandler` throws for whatever reason, `am` will use its default error handler.
 
-The `am()` function returns nothing.
+The `am()` function returns a promise which always resolves to the value returned from `main()`.
 
 ---
 
