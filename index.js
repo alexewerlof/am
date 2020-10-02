@@ -1,3 +1,5 @@
+'use strict'
+
 function defaultErrorHandler(error) {
     console.error(error)
 }
