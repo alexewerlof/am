@@ -1,16 +1,16 @@
-A simple, light and unified way to run a top level async function asynchronously, addressing some quirks.
+**A simple, secure light and unified way to run a top level async function addressing some common edge cases.**
+
+_Its main use case is for creating Node CLIs._
 
 > **Do I really need this?** No, if you are asking. Yes, if a simple IIFE doesn't do the job and you find yourself dealing with unexpected bugs and copy/pasted workarounds. 
 
 * 0️⃣ No dependency
-* Works in the browser and Node
-* Works with `async` functions, native or custom promises
 * 🐭 [Minimal and readable code](./index.js)
-* ⚠ When run in node, sets the process exit code to a non-zero value
-* 🏳 Can run both `async` or synchronous functions
-* 💌 Passes arguments to the main function
-* Supports custom error handlers
-* Listens to `unhandledRejection` error and prints the stack trace and the name of the faulty function
+* ⚠ On throw, sets the process exit code to a non-zero value (`1`)
+* Listens to `unhandledRejection` error and prints the stack trace and the name of the faulty function and sets the process exit code to a non-zero value (`2`)
+* 🏳 Works with `async` functions, native or custom promises
+* 💌 Passes arguments as parameters to the main function
+* 💊 Supports custom error handlers
 
 ### Install
 
@@ -44,6 +44,7 @@ Despite that, the process exit code remains 0 which means if you're chaining you
 
 ```javascript
 const am = require('am')
+
 am(async function main() {
     // my async-await logic
 })
@@ -72,9 +73,23 @@ Then your `main()` function gets them as two arguments:
 ```javascript
 // my-script.js
 const am = require('am')
+
 am(async function main(foo, bar) {
     console.log(foo) // "apple"
     console.log(bar) // "orange"
+})
+```
+
+If you prefer, you can directly pass those CLI params to something more sophisticated like [`minimist`](https://www.npmjs.com/package/minimist):
+
+```javascript
+// my-script.js
+const am = require('am')
+const minimist = require('minimist')
+
+am(async function main(...cliArgs) {
+    const argv = minimist(cliArgs)
+    console.dir(argv) // { _: ["apple", "orange" ] }
 })
 ```
 
@@ -82,13 +97,12 @@ am(async function main(foo, bar) {
 
 `am(main, errorHandler?): void`
 
-* `main` is an `async` or *sync* (normal) function. If there's an error the `errorHandler` will be called.
-  If it's run in Node, the `main` function will get the parameters as arguments.
-* `errorHandler` an optional function that'll be called if an error happens.
-  It'll get the error as its argument.
-  If you don't provide an `errorHandler`, the default error handler will be used which simply sets the `process.exitCode` to a non-zero value and prints the error stack trace using `console.error`.
+* `main` is an `async` or *sync* (traditional) function. If there's an error the `errorHandler` will be called, otherwise a default error handler will be used which prints the error and sets the `process.exitCode` to `1`.
+* The `main` function will get the CLI arguments as its parameters in the order they were typed by the user.
+* When you first call `am`, it will listen to `unhandledRejection` event and prints the error message referring to the failed promise and sets the `process.exitCode` to `2`. The default or provided `errorHandler` will not be called (that way you can call `am()` as many times as needed)
+* `errorHandler` an optional `async` or *sync* (traditional) function that'll be called if the `main()` function throws. It takes the error as its argument. Even if you provide your custom error handler, we still set the `process.exitCode` to `1` if you forget to set it to a non-zero value. Also, if your custom `errorHandler` throws for whatever reason, `am` will use its default error handler.
 
-The `am()` function returns nothing.
+The `am()` function returns a promise which always resolves to the value returned from `main()`.
 
 ---
 

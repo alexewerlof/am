@@ -1,39 +1,65 @@
+'use strict'
+
 function defaultErrorHandler(error) {
-    if (typeof process === 'object') {
-        process.exitCode = process.exitCode || 1
-    }
     console.error(error)
 }
 
-function listenToUnhandledRejection(process, errorHandler) {
-    if (typeof process === 'object' && !listenToUnhandledRejection.enabled) {
-        listenToUnhandledRejection.enabled = true
-        process.on('unhandledRejection', (error, failedPromise) => {
-            console.warn('Unhandled Rejection at: Promise', failedPromise)
-            errorHandler(error)
-        })
+function getScriptArgs(process) {
+    if (!process || typeof process !== 'object' || !Array.isArray(process.argv)) {
+        return []
+    }
+
+    const [, , ...params] = process.argv
+    return params
+}
+
+function setExitCode(process, code = 1) {
+    if (process && typeof process === 'object' && process.exitCode !== code) {
+        process.exitCode = code
     }
 }
 
-function getScriptArgs(process) {
-    if (typeof process === 'object' && Array.isArray(process.argv)) {
-        const [, , ...params] = process.argv
-        return params
+async function handleError(mainError, errorHandler) {
+    setExitCode(process, 1)
+    if (errorHandler === defaultErrorHandler) {
+        return defaultErrorHandler(mainError)
     }
-    return []
+
+    try {
+        await errorHandler(mainError)
+    } catch (errorHandlerFailure) {
+        console.warn(`The custom error handler failed`, errorHandlerFailure)
+        defaultErrorHandler(mainError)
+    }
+}
+
+function registerUnhandledRejectionHandler(process) {
+    if (!process || typeof process !== 'object' || typeof process.on !== 'function' || registerUnhandledRejectionHandler.done) {
+        return
+    }
+    
+    function amUnhandledRejectionHandler(error, failedPromise) {
+        setExitCode(process, 2)
+        console.warn(`Unhandled Promise Rejection ${error}\n\tat: Promise ${failedPromise}`)
+    }
+
+    process.on('unhandledRejection', amUnhandledRejectionHandler)
+    registerUnhandledRejectionHandler.done = true
+}
+
+async function runMain(asyncMain, errorHandler, process) {
+    registerUnhandledRejectionHandler(process)
+    try {
+        return await asyncMain(...getScriptArgs(process))
+    } catch (mainError) {
+        await handleError(mainError, errorHandler)
+    }
 }
 
 function am(asyncMain, errorHandler = defaultErrorHandler) {
-    try {
-        listenToUnhandledRejection(process, errorHandler)
-        const mainResult = asyncMain(...getScriptArgs(process))
-        if (mainResult !== undefined && typeof mainResult.catch === 'function') {
-            mainResult.catch(errorHandler)
-        }
-    } catch (error) {
-        errorHandler(error)
-    }
+    return runMain(asyncMain, errorHandler, process)
 }
 
+am.am = am
+
 module.exports = am
-module.exports.am = am
