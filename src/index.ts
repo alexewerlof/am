@@ -15,7 +15,7 @@ const setExitCode = (process: NodeJS.Process, code = 1) => {
     }
 };
 
-async function handleError(mainError: Error, errorHandler: (error: Error) => Promise<void> | void) {
+const handleError = async (mainError: Error, errorHandler: (error: Error) => Promise<void> | void) => {
     setExitCode(process, 1);
     if (errorHandler === defaultErrorHandler) return defaultErrorHandler(mainError);
 
@@ -25,7 +25,7 @@ async function handleError(mainError: Error, errorHandler: (error: Error) => Pro
         console.warn(`The custom error handler failed`, errorHandlerFailure);
         defaultErrorHandler(mainError);
     }
-}
+};
 
 type RegisterUnhandledRejectionHandler = {
     (process: NodeJS.Process): void;
