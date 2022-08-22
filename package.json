@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "description": "A simple and light way to run a main function asynchronously",
   "main": "index.js",
+  "types": "index.d.ts",
   "keywords": [
     "async",
     "await",

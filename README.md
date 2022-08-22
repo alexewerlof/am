@@ -11,6 +11,7 @@ _Its main use case is for creating Node CLIs._
 * 🏳 Works with `async` functions, native or custom promises
 * 💌 Passes arguments as parameters to the main function
 * 💊 Supports custom error handlers
+* 📦 Typescript types are included out of the box
 
 ### Install
 
@@ -95,14 +96,7 @@ am(async function main(...cliArgs) {
 
 # API
 
-`am(main, errorHandler?): void`
-
-* `main` is an `async` or *sync* (traditional) function. If there's an error the `errorHandler` will be called, otherwise a default error handler will be used which prints the error and sets the `process.exitCode` to `1`.
-* The `main` function will get the CLI arguments as its parameters in the order they were typed by the user.
-* When you first call `am`, it will listen to `unhandledRejection` event and prints the error message referring to the failed promise and sets the `process.exitCode` to `2`. The default or provided `errorHandler` will not be called (that way you can call `am()` as many times as needed)
-* `errorHandler` an optional `async` or *sync* (traditional) function that'll be called if the `main()` function throws. It takes the error as its argument. Even if you provide your custom error handler, we still set the `process.exitCode` to `1` if you forget to set it to a non-zero value. Also, if your custom `errorHandler` throws for whatever reason, `am` will use its default error handler.
-
-The `am()` function returns a promise which always resolves to the value returned from `main()`.
+See the [typescript definition](index.d.ts)
 
 ---
 
