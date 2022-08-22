@@ -2,7 +2,7 @@
 
 _Its main use case is for creating Node CLIs._
 
-> **Do I really need this?** No, if you are asking. Yes, if a simple IIFE doesn't do the job and you find yourself dealing with unexpected bugs and copy/pasted workarounds. 
+> **Do I really need this?** No, if you are asking. Yes, if a simple IIFE doesn't do the job and you find yourself dealing with unexpected bugs and copy/pasted workarounds. _Node.js 14.8 added top level `await` so you may not need this_.
 
 * 0️⃣ No dependency
 * 🐭 [Minimal and readable code](./index.js)
