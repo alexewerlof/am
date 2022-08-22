@@ -15,6 +15,6 @@
   "repository": "github:userpixel/am",
   "license": "MIT",
   "devDependencies": {
-    "jest": "^24.8.0"
+    "jest": "^28.1.3"
   }
 }
